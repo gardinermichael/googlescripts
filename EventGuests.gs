@@ -65,7 +65,7 @@ function runSync(){
   var calTechs = returnEmails();
   var sheetTechs = getTechs();
   var sheetOutput = [];
-    var header = [
+  var header = [
     "First Name",
     "Last Name",
     "Phone",
