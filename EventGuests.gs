@@ -65,6 +65,15 @@ function runSync(){
   var calTechs = returnEmails();
   var sheetTechs = getTechs();
   var sheetOutput = [];
+    var header = [
+    "First Name",
+    "Last Name",
+    "Phone",
+    "Email",
+    "Job",
+    "#"
+  ];
+  sheetOutput.push(header);
 
   calTechs.forEach(function(calTech) {
     sheetTechs.forEach(function(sheetTech) {
@@ -84,8 +93,8 @@ function runSync(){
         }
     });      
   });
-
-  activeSheet.getRange(2, 1, sheetOutput.length, 6).setValues(sheetOutput);
+  activeSheet.clearContents();
+  activeSheet.getRange(1, 1, sheetOutput.length, 6).setValues(sheetOutput);
 }
 
 
