@@ -55,9 +55,9 @@ function run(){
         var file = files.next();
         filesNamesArray.push(file.getName().toLowerCase());
 
-        if(/rooftop dj/.test(file.getName().toLowerCase())){
-          rooftopDJPresent = true;
-        } 
+        // if(/rooftop dj/.test(file.getName().toLowerCase())){
+        //   rooftopDJPresent = true;
+        // } 
         if(file.getName().toLowerCase().indexOf("ros") > 0){
           rosPresent = true;
         } 
@@ -74,6 +74,7 @@ function run(){
       Logger.log(filesNamesArray);
 
       if(!filesNamesArray.includes("links // info")){
+        Logger.log("Creating Links // Info");
         var doc = DocumentApp.create('LINKS // INFO');
         var docFile = DriveApp.getFileById(doc.getId());
         docFile.moveTo(showFolder);
@@ -95,43 +96,43 @@ function run(){
           var settlementSheetURL = "";
           var rosURL = "";
 
-
-
           if(!settlementPresent){
-            if(searchForCellValue(spreadSheet, "GA Final release")){
+            if(searchForCellValue(spreadSheet, "GA 1st release")){
+              Logger.log("Creating Late Night Settlement Sheet");
               var templateSettlementSheet = DriveApp.getFileById("");
               var newSettlementSheet = templateSettlementSheet.makeCopy((templateName + "SETTLEMENT SHEET"),showFolder);
               var newSpreadsheet = SpreadsheetApp.openById(newSettlementSheet.getId());
               var newsheet = newSpreadsheet.getSheets()[0];
               newsheet.getRange("G16").setValue(eventTitle);
               newsheet.getRange("G18").setValue(eventDate);
-              
-              var doorTickets = sheet.getRange(searchForCellValue(spreadSheet, "Door Tickets")[0]+1,searchForCellValue(spreadSheet, "Door Tickets")[1]).getValue();
-              var gaFinalRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA Final release")[0]+1,searchForCellValue(spreadSheet, "GA Final release")[1]).getValue();
-              var ga2ndRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA 2nd release")[0]+1,searchForCellValue(spreadSheet, "GA 2nd release")[1]).getValue();
-              var ga1stRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA 1st release")[0]+1,searchForCellValue(spreadSheet, "GA 1st release")[1]).getValue();
 
-              if(doorTickets){
-                newsheet.getRange("G41").setValue(doorTickets);
-              } else{
-                newsheet.getRange("G41").setValue("TBD");
+              var gaFinalRelease = "TBD";
+              var ga2ndRelease = "TBD";
+              var ga1stRelease = "TBD";
+              var doorTickets = "TBD";
+
+              if (searchForCellValue(spreadSheet, "GA Final release")){
+                gaFinalRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA Final release")[0]+1,searchForCellValue(spreadSheet, "GA Final release")[1]).getValue();
               }
-              if(gaFinalRelease){
-                newsheet.getRange("G34").setValue(gaFinalRelease);
-              } else{
-                newsheet.getRange("G34").setValue("TBD");
+              if (searchForCellValue(spreadSheet, "GA 2nd release")){
+                ga2ndRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA 2nd release")[0]+1,searchForCellValue(spreadSheet, "GA 2nd release")[1]).getValue();
               }
-              if(ga2ndRelease){
-                newsheet.getRange("G27").setValue(ga2ndRelease);
-              } else{
-                newsheet.getRange("G27").setValue("TBD");
+              
+              if (searchForCellValue(spreadSheet, "GA 1st release")){
+                ga1stRelease = sheet.getRange(searchForCellValue(spreadSheet, "GA 1st release")[0]+1,searchForCellValue(spreadSheet, "GA 1st release")[1]).getValue();
               }
-              if(ga1stRelease){
-                newsheet.getRange("G20").setValue(ga1stRelease);
-              } else{
-                newsheet.getRange("G20").setValue("TBD");
+              if (searchForCellValue(spreadSheet, "Door Tickets")){
+                doorTickets = sheet.getRange(searchForCellValue(spreadSheet, "Door Tickets")[0]+1,searchForCellValue(spreadSheet, "Door Tickets")[1]).getValue();
               }
+
+              newsheet.getRange("G41").setValue(doorTickets);
+              newsheet.getRange("G34").setValue(gaFinalRelease);
+              newsheet.getRange("G27").setValue(ga2ndRelease);
+              newsheet.getRange("G20").setValue(ga1stRelease);
+              advanceTicketPrice = "Late Night";
+              doorTicketPrice = doorTickets;
             } else {
+              Logger.log("Creating Settlement Sheet");
               var templateSettlementSheet = DriveApp.getFileById("");
               var newSettlementSheet = templateSettlementSheet.makeCopy((templateName + "SETTLEMENT SHEET"),showFolder);
               var newSpreadsheet = SpreadsheetApp.openById(newSettlementSheet.getId());
@@ -145,18 +146,19 @@ function run(){
               }
               if(doorTicketPrice){
                 newsheet.getRange("G27").setValue(doorTicketPrice);
+                newsheet.getRange("G34").setValue(doorTicketPrice);
               } else{
                 newsheet.getRange("G27").setValue("TBD");
+                newsheet.getRange("G34").setValue("TBD");
               }
             }
-
-
             settlementSheetURL = newSpreadsheet.getUrl();
           }
 
           var ticketPrice = 'n/a';
 
           if(!rosPresent){
+            Logger.log("Creating ROS");
             var templateROS = DriveApp.getFileById("");
             var rosDoc = templateROS.makeCopy((templateName + "ROS"),showFolder);
             var body = DocumentApp.openById(rosDoc.getId());
@@ -166,11 +168,11 @@ function run(){
             text.findText("SHOW BILLING: ").getElement().setBold(false);
             text.findText("SHOW BILLING: ").getElement().setBold(0, 13, true);
 
-            text.findText("SHOW DATE: ").getElement().appendText(Utilities.formatDate(new Date(eventDate),"GMT", "M/dd/yy"));
+            text.findText("SHOW DATE: ").getElement().appendText(Utilities.formatDate(new Date(eventDate),"GMT", "EEEE, MMM d, yyyy"));
             text.findText("SHOW DATE: ").getElement().setBold(false);
             text.findText("SHOW DATE: ").getElement().setBold(0, 10, true);
 
-            if(doorTicketPrice){
+            if(doorTicketPrice && !isNaN(parseInt(doorTicketPrice, 10))){
               ticketPrice = '$' + doorTicketPrice + ' ($' + (doorTicketPrice + 2) + ' w/CC)';
             } else {
               ticketPrice = "TBD";
@@ -188,6 +190,7 @@ function run(){
           }
 
           if(!rosPresent || !settlementPresent || linksDocCreated){
+            Logger.log("Saving to Log");
             // var logSpreadsheet = SpreadsheetApp.openById("");
             // var logSheet = logSpreadsheet.getSheets()[0];
             logSheet.appendRow([
@@ -208,6 +211,18 @@ function run(){
         }
       } catch (e) {
         Logger.log('Error catched: ' + e);
+        var errorSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Error Log");
+        errorSheet.appendRow([
+          new Date(),
+          (showFolder.getName() ? showFolder.getName() : 'n/a'),
+          (showFolder.getUrl() ? showFolder.getUrl() : 'n/a'),
+          (dealSheetURL ? dealSheetURL : 'n/a'),
+          (settlementSheetURL ? settlementSheetURL : 'n/a'),
+          (rosURL ? rosURL : 'n/a'),
+          'Error catched: ' + e,
+          e.stack,
+        ])
+        
       } finally {
         Logger.log('Folder Done');
         Logger.log('================');
